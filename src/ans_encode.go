@@ -52,7 +52,7 @@ func check(e error) {
 
 func main() {
 	prefixPtr := flag.String("prefix", "test", "prefix for a configuration file")
-	messagePtr := flag.String("m", "abc", "message to be encoded")
+	messagePtr := flag.String("m", "ABC", "message to be encoded")
 	XPtr := flag.Int("X", 12, "initial state")
 	dbgPtr := flag.Bool("debug", false, "debugging")
 

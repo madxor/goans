@@ -51,7 +51,7 @@ func main() {
 	var S []Symbols
 
 	if *NPtr == 0 {
-		S = []Symbols{{"a", 0.3}, {"b", 0.2}, {"c", 0.4}, {"d", 0.1}}
+		S = []Symbols{{"A", 0.3}, {"B", 0.2}, {"C", 0.4}, {"D", 0.1}}
 	} else {
 		for i := 'A'; int(i) < int('A') + *NPtr; i++ {
 			if *GPtr == 0.0 {
