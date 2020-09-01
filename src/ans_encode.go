@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 import "math"
-import "encoding/json" 
+import "encoding/json"
 import "flag"
 import "io/ioutil"
 import "strconv"
@@ -57,29 +57,29 @@ func main() {
 	dbgPtr := flag.Bool("debug", false, "debugging")
 
 	flag.Parse()
-	
+
 	var A ANSConfiguration
-	
+
 	Af, err := ioutil.ReadFile(*prefixPtr + "_config.json")
 	check(err)
-	
+
 	check(json.Unmarshal(Af, &A))
-	
+
 	M := []byte(*messagePtr)
-	
+
 	if *dbgPtr {
 		fmt.Println(M)
 	}
-	
+
 	var s string
 	var E string
 	var b []int
 	var X int
 	var x float64
 	var stateStart int
-	
+
 	stateStart = 9999999
-	
+
 	C := make(map[CodingState]int)
 
 	for k, v := range A.CJ {
@@ -99,12 +99,12 @@ func main() {
 	}
 
 	//x = float64(stateStart) + float64(*XPtr) // set the initial state
-	
+
 	x = float64(*XPtr) // set the initial state
 
 	for i := len(M); i > 0; i-- {
 		s = string(M[i-1])
-		
+
 		if *dbgPtr {
 			fmt.Println("Encoding ->", s)
 		}
@@ -120,16 +120,16 @@ func main() {
 	X = int(x)
 
 	fmt.Println("Final state ->", X)
-	
+
 	if *dbgPtr { fmt.Println("Encoded proto-string ->", b) }
-	
+
 	for i := 0; i < len(b); i++ {
 		E = E + strconv.FormatInt(int64(b[i]), 2)
 	}
 	fmt.Println("Encoded bitstring ->", E)
-	
+
 	O := EncodedMessage{E, X}
-	
+
 	OJ, err := json.MarshalIndent(O, "", "        ")
 	check(err)
 

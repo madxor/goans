@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 import "math"
-import "encoding/json" 
+import "encoding/json"
 import "flag"
 import "io/ioutil"
 import "strconv"
@@ -58,15 +58,15 @@ func main() {
 
 	var A ANSConfiguration
 	var E EncodedMessage
-	
+
 	Af, err := ioutil.ReadFile(*pPtr + "_config.json")
 	check(err)
-	
+
 	check(json.Unmarshal(Af, &A))
-	
+
 	Ef, err := ioutil.ReadFile(*pPtr + "_" + *ePtr + "_encoded.json")
 	check(err)
-	
+
 	check(json.Unmarshal(Ef, &E))
 
 	var b []byte
@@ -74,11 +74,11 @@ func main() {
 	B := []byte(E.M)
 
 	X := E.F // set the final state
-	
+
 	if *dPtr {
 		fmt.Println(B)
 	}
-	
+
 	var S []string
 
 	for ;; {
@@ -113,7 +113,7 @@ func main() {
 		} else {
 			b = B[:k]
 			B = B[k:]
-		
+
 			bb, _ := strconv.ParseInt(string(b), 2, 64)
 			X = int(float64(math.Pow(2, float64(k))) * float64(A.D[X].X) + float64(int(bb)))
 

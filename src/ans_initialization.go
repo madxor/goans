@@ -3,7 +3,7 @@ package main
 import "fmt"
 import "sort"
 import "math"
-import "encoding/json" 
+import "encoding/json"
 import "flag"
 import "io/ioutil"
 import b64 "encoding/base64"
@@ -49,7 +49,7 @@ type ANSConfiguration struct {
 
 type SortState []State
 
-func (a SortState) Len() int 		{ return len(a) }
+func (a SortState) Len() int		{ return len(a) }
 func (a SortState) Less(i, j int) bool	{ return a[i].v < a[j].v }
 func (a SortState) Swap(i, j int)	{ a[i], a[j] = a[j], a[i] }
 
@@ -86,7 +86,7 @@ func main() {
 	if *dbgPtr {
 		fmt.Println("Json IP file ->", string(IPFile))
 	}
-	
+
 	check(json.Unmarshal(IPFile, &IP))
 
 	if *dbgPtr {
@@ -153,7 +153,7 @@ func main() {
 	}
 
 	A := ANSConfiguration{IP.R, Ls, D, C2j}
-	
+
 	AJ, err := json.MarshalIndent(A, "", "        ")
 	check(err)
 

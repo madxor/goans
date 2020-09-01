@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 import "os"
-import "encoding/json" 
+import "encoding/json"
 import "flag"
 import "bufio"
 import "io/ioutil"
@@ -37,7 +37,7 @@ func main() {
 	dbgPtr := flag.Bool("debug", false, "debugging")
 
 	flag.Parse()
-	
+
 	var S []Symbols
 
 	if *NPtr == 0 {
