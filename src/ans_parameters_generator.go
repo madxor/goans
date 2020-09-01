@@ -7,6 +7,7 @@ import "flag"
 import "bufio"
 import "io/ioutil"
 import "strconv"
+import "math"
 
 /*
 	Generator reads from standard input and generates a json file
@@ -34,9 +35,18 @@ func main() {
 	prefixPtr := flag.String("prefix", "test", "prefix name for parameters output files")
 	RPtr	:= flag.Int("R", 3, "encoding quality parameter")
 	NPtr	:= flag.Int("N", 0, "number of symbols to read")
+	GPtr	:= flag.Float64("G", 0.0, "parameter for geometric distribution of symbols")
 	dbgPtr := flag.Bool("debug", false, "debugging")
 
 	flag.Parse()
+
+	if *GPtr >= 1.0 {
+		fmt.Printf("G parameter must be smaller than 1")
+	}
+
+	if *GPtr < 0.0 {
+		fmt.Printf("G parameter must be larger than 0")
+	}
 
 	var S []Symbols
 
@@ -44,13 +54,22 @@ func main() {
 		S = []Symbols{{"a", 0.3}, {"b", 0.2}, {"c", 0.4}, {"d", 0.1}}
 	} else {
 		for i := 'A'; int(i) < int('A') + *NPtr; i++ {
-			fmt.Printf("Enter  probability for symbol %c: ", rune(i))
-			scanner := bufio.NewScanner(os.Stdin)
-			scanner.Scan()
-			in := scanner.Text()
-			p, _ := strconv.ParseFloat(in, 64)
-			if *dbgPtr { fmt.Println(p) }
-			S = append(S, Symbols{string(i), p})
+			if *GPtr == 0.0 {
+				fmt.Printf("Enter  probability for symbol %c: ", rune(i))
+				scanner := bufio.NewScanner(os.Stdin)
+				scanner.Scan()
+				in := scanner.Text()
+				p, _ := strconv.ParseFloat(in, 64)
+				if *dbgPtr { fmt.Println(p) }
+				S = append(S, Symbols{string(i), p})
+			} else {
+				// Use gemoetric distribution of symbols
+				S = append(S, Symbols{string(i), math.Pow(*GPtr, float64(1 + int(i) - int('A')))})
+				if int(i) - int('A') + 2 == *NPtr  {
+					S = append(S, Symbols{string(i + 1), math.Pow(*GPtr, float64(1 + int(i) - int('A')))})
+					break
+				}
+			}
 		}
 	}
 
