@@ -84,7 +84,7 @@ func main() {
 
 	for k, v := range A.CJ {
 		if *dbgPtr { fmt.Println(k) }
-		sTmp := str.Split(k,"+")
+		sTmp := str.Split(k,"!")
 		xTmp, _ := b64.StdEncoding.DecodeString(sTmp[1])
 		C[CodingState{sTmp[0], int(xTmp[0])}] = v
 		if v < stateStart {

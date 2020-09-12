@@ -1,6 +1,7 @@
 package main
 
 import "fmt"
+import "strconv"
 import "sort"
 import "math"
 import "encoding/json"
@@ -31,7 +32,7 @@ type State struct {
 
 type CodingState struct {
 	S string
-	X int
+	X int64
 }
 
 type InitializationParameters struct {
@@ -41,10 +42,10 @@ type InitializationParameters struct {
 
 type ANSConfiguration struct {
 	R	int
-	Ls	map[string]int
-	D	map[int]CodingState
+	Ls	map[string]int64
+	D	map[int64]CodingState
 	//C	map[CodingState]int
-	CJ	map[string]int
+	CJ	map[string]int64
 }
 
 type SortState []State
@@ -63,6 +64,7 @@ func main() {
 
 	prefixPtr := flag.String("prefix", "test", "prefix for parameters and configuration files")
 	dbgPtr := flag.Bool("debug", false, "debugging")
+	vPtr := flag.Bool("v", false, "verbous")
 
 	flag.Parse()
 
@@ -72,11 +74,11 @@ func main() {
 	var R float64
 
 	P := make(map[string]float64)
-	Ls := make(map[string]int)
-	Xs := make(map[string]int)
-	D := make(map[int]CodingState)
-	C := make(map[CodingState]int)
-	C2j := make(map[string]int)
+	Ls := make(map[string]int64)
+	Xs := make(map[string]int64)
+	D := make(map[int64]CodingState)
+	C := make(map[CodingState]int64)
+	C2j := make(map[string]int64)
 
 	var stateStack []State
 	var t State
@@ -103,14 +105,14 @@ func main() {
 		}
 	}
 
-	var L = int(math.Pow(2, R))
+	var L = int64(math.Pow(2, R))
 
 	if *dbgPtr {
 		fmt.Println(L)
 	}
 
 	for i := 0; i < len(S); i++ {
-		Ls[S[i].S] = int(float64(L) * P[S[i].S]) //+ 1
+		Ls[S[i].S] = int64(float64(L) * P[S[i].S]) //+ 1
 		if Ls[S[i].S] == 0 {
 			Ls[S[i].S]++
 		}
@@ -129,7 +131,7 @@ func main() {
 		}
 	}
 
-	for x := int(L); x < int(L)*2; x++ {
+	for x := int64(L); x < int64(L)*2; x++ {
 		if *dbgPtr {
 			fmt.Println(stateStack)
 		}
@@ -146,9 +148,9 @@ func main() {
 
 		D[x] = CodingState{t.s, Xs[t.s]}				// D[x] = (s, xs)
 		C[CodingState{t.s, Xs[t.s]}] = x				// C[xs, s] = x
-		tmp := b64.StdEncoding.EncodeToString([]byte(string(Xs[t.s])))
+		tmp := b64.StdEncoding.EncodeToString([]byte(strconv.FormatInt(Xs[t.s], 10)))
 		//C2j[t.s + "-" + string(Xs[t.s])] = x				// Coding table json writer helper
-		C2j[t.s + "+" + tmp] = x				// Coding table json writer helper
+		C2j[t.s + "!" + tmp] = x				// Coding table json writer helper
 		Xs[t.s]++							// xs ++
 	}
 
@@ -163,6 +165,6 @@ func main() {
 
 	check(ioutil.WriteFile(*prefixPtr + "_config.json", AJ, 0644))
 
-	fmt.Println("ANS initialization done")
+	if (*vPtr) { fmt.Println("ANS initialization done") }
 }
 
