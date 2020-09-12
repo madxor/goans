@@ -5,7 +5,7 @@ import "math"
 import "encoding/json"
 import "flag"
 import "sort"
-//import "strconv"
+import "strconv"
 import "io/ioutil"
 import str "strings"
 import b64 "encoding/base64"
@@ -22,6 +22,9 @@ import b64 "encoding/base64"
 	X <-- final state
  */
 
+var searchedSpace int64
+var potentialSolutions int64
+
 type State struct {
 	v float64
 	s string
@@ -29,7 +32,7 @@ type State struct {
 
 type CodingState struct {
 	S string
-	X int
+	X int64
 }
 
 type SymbolEncVariance struct {
@@ -37,12 +40,18 @@ type SymbolEncVariance struct {
 	MaxK int
 }
 
+type GuessingWindowFrames struct {
+	Variance map[string]SymbolEncVariance
+	SearchedSpace int64
+	PotentialSolutions int64
+}
+
 type ANSConfiguration struct {
 	R	int
-	Ls	map[string]int
-	D	map[int]CodingState
-	//C	map[CodingState]int
-	CJ	map[string]int
+	Ls	map[string]int64
+	D	map[int64]CodingState
+	//C	map[CodingState]int64
+	CJ	map[string]int64
 }
 
 func check(e error) {
@@ -51,17 +60,21 @@ func check(e error) {
 	}
 }
 
-func depthSearch(sLen int, bLen int, s int, S []string, V map[string]SymbolEncVariance, sS []string, sK []int, dbg bool) (bool) {
-	if (dbg) {fmt.Println("depthSearch -> ", sLen, bLen, s, S, V)}
+func depthSearch(sLen int, bLen int, S []string, V map[string]SymbolEncVariance, sS []string, sK []int, vrb bool, dbg bool) (bool) {
+	if (dbg) {fmt.Println("depthSearch -> ", sLen, bLen, S, V)}
 
 	var found bool
 
 	found = false
 
 	if sLen == 0 {
+
+		searchedSpace++
+
 		if bLen == 0 {
-			if (dbg) {fmt.Print("Found for:", sLen, bLen, s, S, V)}
-			fmt.Println("sS, sK ->", sS, sK)
+			if (dbg) {fmt.Print("Found for:", sLen, bLen, S, V)}
+			if (vrb) {fmt.Println("sS, sK ->", sS, sK)}
+			potentialSolutions++
 			return true
 		} else {
 			/* do nothing */
@@ -69,15 +82,15 @@ func depthSearch(sLen int, bLen int, s int, S []string, V map[string]SymbolEncVa
 		}
 	}
 
-	for i := s; i < len(S); i++ {
+	for i := 0; i < len(S); i++ {
 		if (dbg) {fmt.Println(S[i])}
 		sS := append(sS, S[i])
 		if bLen >= 0 {
 			for k := V[S[i]].MinK; k <= V[S[i]].MaxK; k++ {
 				if (dbg) {fmt.Println("k ->", k, V[S[i]].MinK, V[S[i]].MaxK)}
 				sK := append(sK, k)
-				if depthSearch(sLen - 1, bLen - k, i, S, V, sS, sK, dbg) {
-					if (dbg) {fmt.Println(s, "Matched for ->", S[i], k)}
+				if depthSearch(sLen - 1, bLen - k, S, V, sS, sK, vrb, dbg) {
+					if (dbg) {fmt.Println(V[S[i]], "Matched for ->", S[i], k)}
 					found = true
 				} else {
 					found = false
@@ -90,34 +103,43 @@ func depthSearch(sLen int, bLen int, s int, S []string, V map[string]SymbolEncVa
 }
 
 func main() {
+	
+	searchedSpace = 0
+	potentialSolutions = 0
+	
 	prefixPtr := flag.String("prefix", "test", "prefix for a configuration file")
 	dPtr := flag.Bool("debug", false, "debugging")
+	vPtr := flag.Bool("v", false, "verbous")
 	sPtr := flag.Int("s", 0, "length of symbols")
 	bPtr := flag.Int("b", 0, "length of binary output")
 
 	flag.Parse()
 
 	var A ANSConfiguration
-
+	
 	Af, err := ioutil.ReadFile(*prefixPtr + "_config.json")
 	check(err)
-
+	
 	check(json.Unmarshal(Af, &A))
 
-	var stateStart int
-	var stateCounter int
+	var stateStart int64
+	var stateCounter int64
 
 	stateStart = 9999999
 	stateCounter = 0
 
-	C := make(map[CodingState]int)
+	C := make(map[CodingState]int64)
 	V := make(map[string]SymbolEncVariance)
 
 	for k, v := range A.CJ {
-		if *dPtr { fmt.Println(k) }
-		sTmp := str.Split(k,"+")
-		xTmp, _ := b64.StdEncoding.DecodeString(sTmp[1])
-		C[CodingState{sTmp[0], int(xTmp[0])}] = v
+		if *dPtr { fmt.Println("k->", k) }
+		sTmp := str.Split(k,"!")
+		dxTmp,_ := b64.StdEncoding.DecodeString(sTmp[1])
+		xTmp, _ := strconv.ParseInt(string(dxTmp), 10, 64)
+		if *dPtr { fmt.Println("sTmp ->", sTmp) }
+		if *dPtr { fmt.Println("xTmp ->", xTmp) }
+		
+		C[CodingState{sTmp[0], xTmp}] = v
 		if v < stateStart {
 			stateStart = v
 		}
@@ -159,14 +181,22 @@ func main() {
 	}
 	sort.Strings(symbols)
 
-	fmt.Println(V)
+	if (*vPtr) {fmt.Println(V)}
 
-	if *dPtr {
-		fmt.Println(symbols[0], symbols[len(symbols) - 1])
-	}
+	if *dPtr {fmt.Println(symbols[0], symbols[len(symbols) - 1])}
 
 	var solutionS []string
 	var solutionK []int
 
-	depthSearch(*sPtr, *bPtr, 0, symbols, V, solutionS, solutionK, *dPtr)
+	depthSearch(*sPtr, *bPtr, symbols, V, solutionS, solutionK, *vPtr, *dPtr)
+	if (*vPtr) {fmt.Println("Searched space\t\t", searchedSpace, "\nPotential solutions\t", potentialSolutions)}
+	
+	var GWF GuessingWindowFrames
+	GWF.Variance = V
+	GWF.PotentialSolutions = potentialSolutions
+	GWF.SearchedSpace = searchedSpace
+	
+	GWFj, _ := json.MarshalIndent(GWF, "", "        ")
+
+	check(ioutil.WriteFile(*prefixPtr + "_S" + fmt.Sprintf("%02d", *sPtr) + "_B" + fmt.Sprintf("%02d", *bPtr) + "_guessing_window_frame.json", GWFj, 0644))
 }
