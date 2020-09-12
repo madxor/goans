@@ -47,11 +47,11 @@ func main() {
 	if *GPtr < 0.0 {
 		fmt.Printf("G parameter must be larger than 0")
 	}
-
+/*
 	if *NPtr > *RPtr {
 		RPtr = NPtr
 	}
-
+*/
 	var S []Symbols
 
 	if *NPtr == 0 {
