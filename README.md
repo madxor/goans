@@ -1,2 +1,2 @@
 # goans
-Naive implementation of ANS in go.
+A toy implementation of ANS in Go language.
