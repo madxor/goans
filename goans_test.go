@@ -64,7 +64,7 @@ func TestInitialStateIterateRandom(t *testing.T) {
 	cfg := GetConfigurationFromGeometricDistribution(0.5, 256, 100)
 	buf := GenerateRandomFrame(cfg)
 
-	for i := 0; i < (2 << cfg.R + 1); i++ {
+	for i := 0; i < (2 << (cfg.R + 1)); i++ {
 		e := EncodeFrame(buf, i, cfg)
 		m := DecodeFrame(e, cfg)
 
