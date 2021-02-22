@@ -4,6 +4,7 @@ import "math"
 import "fmt"
 import "strconv"
 import "sort"
+import "math/rand"
 
 type StackState struct {
 	v float64
@@ -229,6 +230,7 @@ func EncodeFrame(m []byte, X int, cfg Configuration) EncodedFrame {
 		s := m[i]
 		k := int(math.Floor(math.Log2(float64(x) / float64(cfg.L[s]))))
 		if k > 0 && C(s, x, k, cfg) > 0 {
+			// TODO: Use bit operations instead of string
 			t := "%0" + strconv.FormatUint(uint64(k), 10) + "b"
 			b := fmt.Sprintf(t, int(math.Mod(float64(x), math.Pow(2, float64(k)))))
 			B = b + B
@@ -310,5 +312,18 @@ func DecodeFrame(e EncodedFrame, cfg Configuration) []byte {
 		x = int(math.Pow(2, float64(k)) * float64(cfg.D[x].x) + float64(int(bb)))
 	}
 	return m
+}
+
+func GenerateRandomFrame(cfg Configuration) []byte {
+	rand.Seed(int64(1))
+	eL := int(math.Pow(2, float64(cfg.R)))
+
+	var frame = []byte { byte((cfg.D[eL + rand.Intn(eL)]).s) }
+
+	for i := 1; i < cfg.F; i++ {
+		frame = append(frame, byte((cfg.D[eL + rand.Intn(eL)]).s))
+	}
+
+	return frame
 }
 

@@ -61,21 +61,15 @@ func TestEncodeDecodeWithRedundancy(t *testing.T) {
 }
 
 func TestInitialStateIterateRandom(t *testing.T) {
-	buf := []byte{ 0 }
-	buf[0] = byte(rand.Intn(256))
-
-	for i := 1; i < 1024; i++ {
-		buf = append(buf, byte(rand.Intn(256)))
-	}
-
-	cfg := GetConfigurationFromSample(buf)
+	cfg := GetConfigurationFromGeometricDistribution(0.5, 256, 100)
+	buf := GenerateRandomFrame(cfg)
 
 	for i := 0; i < (2 << cfg.R + 1); i++ {
 		e := EncodeFrame(buf, i, cfg)
 		m := DecodeFrame(e, cfg)
 
 		if bytes.Compare(m, buf) != 0 {
-			t.Errorf("%s != %s", buf, m)
+			t.Errorf("%d: %s != %s", i, buf, m)
 			return
 		}
 	}
